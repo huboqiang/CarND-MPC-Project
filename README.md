@@ -126,19 +126,11 @@ states << 0.0, 0.0, 0.0, v, cte, epsi;
 
 The aim of the MPC controller is to optimize a cost function with inputs of `states` which were described in the above section:
 
-$$ Loss = \sum_N^{i}{ [6000* cte_i^{2} + 3000*a_i^{2} + 16*(v_i-v_{ref})^2 } + $$
-
-$$  \sum_{N-1}^{i}{ [50 * \delta_i^2 + 5 * a_i^2 + 150 * (e\psi_i*v_{ref})^2]} + $$
-
-$$  \sum_{N-2}^{i}{ [10000 * (\delta_{i+1}) - \delta_{i}))^2 + 10 * ( a_{i+1} - a_{i})^2]} $$
+![gif](eq1.gif)
 
 Where:
 
-$$ -\frac{25}{180}\pi \le \delta \le \frac{25}{180}\pi $$
-
-$$ -1.0 \le a \le 1.0 $$
-
-$$ v_{ref}=100 $$
+![gif](eq2.gif)
 
 The cost value of the loss were defined in `MPC.cpp` line 46-62, class `FG_eval`, as `fg[0]`, :
 
@@ -220,17 +212,7 @@ Where the `fg_eval` were applied to update the values of the `vars`. This proces
 
 The update function were described in Lesson19, section9 of the class:
 
-$$ x_{t+1} = x_{t} + v_t * cos(\psi_t) * dt$$
-
-$$ y_{t+1} = y_{t} + v_t * sin(\psi_t) * dt$$
-
-$$ \psi_{t+1} = \psi_{t} + \frac{v_t}{L_f} * \delta * dt $$
-
-$$ v_{t+1} = v_{t} + a_t * dt$$
-
-$$ cte_{t+1} =  f(x_t) - y_t + v_t * sin(e\psi_t) * dt$$
-
-$$ e\psi_{t+1} = \psi_t - \psi des_t + (\frac{v_t}{L_f} * \delta_t * dt) $$
+![gif](eq3.gif)
 
 Code:
 
