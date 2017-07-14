@@ -126,19 +126,19 @@ states << 0.0, 0.0, 0.0, v, cte, epsi;
 
 The aim of the MPC controller is to optimize a cost function with inputs of `states` which were described in the above section:
 
-$$ Loss = \sum_N^{i}{ [6000* cte_i^{2} + 3000*a_i^{2} + 16*(v_i-v_{ref})^2 } + $$
+$$Loss = \sum_N^{i}{ [6000* cte_i^{2} + 3000*a_i^{2} + 16*(v_i-v_{ref})^2 } +$$
 
-$$  \sum_{N-1}^{i}{ [50 * \delta_i^2 + 5 * a_i^2 + 150 * (e\psi_i*v_{ref})^2]} + $$
+$$\sum_{N-1}^{i}{ [50 * \delta_i^2 + 5 * a_i^2 + 150 * (e\psi_i*v_{ref})^2]} +$$
 
-$$  \sum_{N-2}^{i}{ [10000 * (\delta_{i+1}) - \delta_{i}))^2 + 10 * ( a_{i+1} - a_{i})^2]} $$
+$$\sum_{N-2}^{i}{ [10000 * (\delta_{i+1}) - \delta_{i}))^2 + 10 * ( a_{i+1} - a_{i})^2]}$$
 
 Where:
 
-$$ -\frac{25}{180}\pi \le \delta \le \frac{25}{180}\pi $$
+$$-\frac{25}{180}\pi \le \delta \le \frac{25}{180}\pi$$
 
-$$ -1.0 \le a \le 1.0 $$
+$$-1.0 \le a \le 1.0$$
 
-$$ v_{ref}=100 $$
+$$v_{ref}=100$$
 
 The cost value of the loss were defined in `MPC.cpp` line 46-62, class `FG_eval`, as `fg[0]`, :
 
