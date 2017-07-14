@@ -302,6 +302,8 @@ AD<double>a0     = vars[a_start+i-1-latencyIdx];
 
 Yes I did it. And this is the demo Video:
 
+![gif](./running.gif)
+
 Youtube:
 
-
+[https://youtu.be/Zr5CT8hBqpU](https://youtu.be/Zr5CT8hBqpU)
