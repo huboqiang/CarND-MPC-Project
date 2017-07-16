@@ -74,39 +74,34 @@ make
 
 Student describes their model in detail. This includes the state, actuators and update equations.
 
+There are eight scalars that were used to describe  this model:
+
+Scalar   |   Type  | Meaning
+---------|---------|---------
+x        | Const| car's position(font/back)
+y        | Const| car's position(left/right)
+$$\psi$$(psi) |  Const|  direction
+v        | Const|   speed
+cte      | Const|   Cross-Tracking Error
+e$$\psi$$(epsi)|  Const| Direction Error 
+$$\delta$$(delta)| Var|  Turning Rate (throttle_value)
+a |  Var| Acceleration Rate (steer_value)
+
+Where [$$x,y,\psi,v,cte,e\psi$$] were constant value for describing the current state of the car, and [$$a,\delta$$] were the returning values of this model and would be send to the simulator to control the car.
+
 #### 1. States
+
 
 States were defined in `main.cpp`, line 120.
 
-To define the states, the location of the car were first transformed from the map's coords to the expected position of the vehicles's coords. The **expected position of the car** were defined as the center of the road(`y=0`) with the same direction of the road(`psi=0`) with the same `x` position as the real position of the car. However, the car may not just at the center of the road, for example, in the next paragraph, the car is 1m left to the expected position, so it's coords was `x=0,y=1`. 
-
-```
-=============================
-Y
-
-Car(x=0,y=1,psi=0)
-            road direction
-Expected    ------------->   X
-(x=0,
- y=0,
- psi=0)
-
-=============================
-```
+As described above, six scalars were used to describe the current state of the car. The **expected position of the car** were firstly defined as the center of the road(`y=0`) with the same direction of the road(`psi=0`) with the same `x` position as the real position of the car. However, the car may not just at the center of the road, for example, in the next paragraph, the car is 1m left to the expected position, so it's coords was `x=0,y=1`. 
 
 
-This step is just like the first step of the `updateWeights` function of [particle filter](https://github.com/huboqiang/CarND-Kidnapped-Vehicle-Project/blob/master/src/particle_filter.cpp), line 147-150. 
- 
-```cpp
-for(int i=0; i<ptsx.size(); i++){
-  double shift_x = ptsx[i] - px;
-  double shift_y = ptsy[i] - py;
-  ptsx[i] = (shift_x*cos(0-psi) - shift_y*sin(0-psi));
-  ptsy[i] = (shift_x*sin(0-psi) + shift_y*cos(0-psi));
-}
-```
 
-Next, the ptsx and ptsy were fit with a 3rd polynomial. With this information, we can get the differenial value between the expected position of the car and its real positions:
+![png](./coord.png)
+
+
+If we simply defined the expected path as the x-axis on this figure, then the cte value would be `cte=-1` and epsi value would be `epsi=-π/4`. However, the actually `cte` and `epsi` were defined using the coeffs of the 3rd-polynomial using the input ptsx and ptsy. With this information, we can get the differenial value between the expected position of the car and its real positions:
 
 ```cpp
 // eptsx for std::vector => eigen::VectorXd conversion
@@ -119,7 +114,8 @@ double cte  = polyeval(coeffs, 0.0);
 double epsi = 0.0 - atan(coeffs[1]);
 
 Eigen::VectorXd states(6);
-states << 0.0, 0.0, 0.0, v, cte, epsi;
+// Expected x-Pos, Expected y-Pos, Expected psi-value, cte, epsi
+states << 0.0, 0.0, 0.0, v, cte, epsi;  
 ```
 
 #### 2. Actuators
@@ -128,9 +124,11 @@ The aim of the MPC controller is to optimize a cost function with inputs of `sta
 
 ![gif](eq1.gif)
 
-Where:
+While we could minimize the loss function with constant state values([$$x,y,\psi,v,cte,e\psi$$]), what we need is to get the `delta`(Turning Rate) and `a` (Acceleration Rate) values in condition of this loss function with restriction of:
 
 ![gif](eq2.gif)
+
+and than return this value to the simulator as `steer_value` and `throttle_value` to control the car.
 
 The cost value of the loss were defined in `MPC.cpp` line 46-62, class `FG_eval`, as `fg[0]`, :
 
@@ -174,7 +172,7 @@ for (int t = 0; t < delta_start; t++) {
 }
 ```
 
-and the range of constant values were defined as zero.
+and the range of `state` values were all constant and should be defined as zero.
 
 ```cpp
 constraints_lowerbound[x_start] = x;
@@ -232,7 +230,11 @@ fg[1+epsi_start+i] = epsi1 - ((psi0-psides0) - (v0*delta0*dt/Lf));
 
 ### Timestep Length and Elapsed Duration (N & dt)
 
-They were defined in `MPC.cpp`. As described in the classroom, `T` should be as large as possible and `dt` should be as small as possible. However, if `T` were too too big or `dt` too small, the computational consumption would be too large. So I just chosen the following parameters:
+They were defined in `MPC.cpp`. A big `N` value would be good because it could provide more parameters to the solver, which could help to get a better estimation.  However, if `N` were too too big, the computational consumption would be too large, which would result in a long time-interval between the returning of controling commands and the car might be out-of-control. For example, the `ipopt::solve` would run about 70 times with `N=10` while it would be just 20 times with `N=50` in the same time period in my code. As the car ran very fast, 20 controlling command is not enough to control the car well and it just ran out of the way.
+
+Next, the value of `N * dt` could just represent the length of road that it would take into consideration. I found that `N = 10, dt = 0.1` could generate a green line with just the same length of the yellow-line reference, which could cover the road ahead well. However, if I used `N = 10, dt = 0.01` in my code, the green line would be too short to see. In other words, it is a blind-car, which could hardly see the road ahead comparing with `N = 10, dt = 0.1`, and would be hard make a right decision for the MPC controller.
+
+So I just choose:
 
 ```cpp
 size_t N  = 10;
@@ -241,7 +243,18 @@ double dt = 0.1;
 
 ### Polynomial Fitting and MPC Preprocessing
 
-A polynomial is fitted to waypoints, which were plotted as a yellow line in the simulator.
+Befort polynomial fitting, the input values for MPC were preprocessed for the waypoint transformation. This step is just like the first step of the `updateWeights` function of [particle filter](https://github.com/huboqiang/CarND-Kidnapped-Vehicle-Project/blob/master/src/particle_filter.cpp), line 147-150. 
+ 
+```cpp
+for(int i=0; i<ptsx.size(); i++){
+  double shift_x = ptsx[i] - px;
+  double shift_y = ptsy[i] - py;
+  ptsx[i] = (shift_x*cos(0-psi) - shift_y*sin(0-psi));
+  ptsy[i] = (shift_x*sin(0-psi) + shift_y*cos(0-psi));
+}
+```
+
+Then a polynomial is fitted to waypoints, which were plotted as a yellow line in the simulator.
 
 ```cpp
 //.. add (x,y) points to list here, points are in reference to the vehicle's coordinate system
@@ -250,6 +263,9 @@ int num_points = 10;
 double poly_inc = 2.5;
 vector<double> next_x_vals;
 vector<double> next_y_vals;
+
+// eptsx for std::vector => eigen::VectorXd conversion
+auto coeffs = polyfit(eptsx, eptsy, 3);  
 for (int i=1; i<num_points; i++){
   next_x_vals.push_back(poly_inc*i);
   next_y_vals.push_back(polyeval(coeffs, poly_inc*i));
