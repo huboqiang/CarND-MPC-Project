@@ -80,14 +80,14 @@ Scalar   |   Type  | Meaning
 ---------|---------|---------
 x        | Const| car's position(font/back)
 y        | Const| car's position(left/right)
-$$\psi$$(psi) |  Const|  direction
-v        | Const|   speed
-cte      | Const|   Cross-Tracking Error
-e$$\psi$$(epsi)|  Const| Direction Error 
-$$\delta$$(delta)| Var|  Turning Rate (throttle_value)
-a |  Var| Acceleration Rate (steer_value)
+psi      | Const| direction
+v        | Const| speed
+cte      | Const| Cross-Tracking Error
+epsi     | Const| Direction Error 
+delta    | Var  |  Turning Rate (throttle_value)
+a        | Var  | Acceleration Rate (steer_value)
 
-Where [$$x,y,\psi,v,cte,e\psi$$] were constant value for describing the current state of the car, and [$$a,\delta$$] were the returning values of this model and would be send to the simulator to control the car.
+Where [x, y, psi, v, cte, epsi] were constant value for describing the current state of the car, and [a, delta] were the returning values of this model and would be send to the simulator to control the car.
 
 #### 1. States
 
