@@ -124,7 +124,7 @@ The aim of the MPC controller is to optimize a cost function with inputs of `sta
 
 ![gif](eq1.gif)
 
-While we could minimize the loss function with constant state values([$$x,y,\psi,v,cte,e\psi$$]), what we need is to get the `delta`(Turning Rate) and `a` (Acceleration Rate) values in condition of this loss function with restriction of:
+While we could minimize the loss function with constant state values([x, y, psi, v, cte, epsi]), what we need is to get the `delta`(Turning Rate) and `a` (Acceleration Rate) values in condition of this loss function with restriction of:
 
 ![gif](eq2.gif)
 
